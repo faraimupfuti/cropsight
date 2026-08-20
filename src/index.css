@@ -1,0 +1,83 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  background: #F6F5EF;
+  color: #15180F;
+}
+
+::selection { background: #006838; color: #fff; }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: #D8D5C6; border-radius: 6px; }
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E2E0D4;
+  border-radius: 14px;
+}
+
+.btn-primary {
+  background: #006838;
+  color: #fff;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: background .15s ease;
+}
+.btn-primary:hover { background: #003D21; }
+.btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: #15180F;
+  border: 1.5px solid #15180F;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: all .15s ease;
+}
+.btn-secondary:hover { background: #15180F; color: #fff; }
+
+.btn-ghost { background: transparent; color: #006838; font-weight: 600; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+}
+
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px;
+  font-size: 14px; font-weight: 500; color: #4A4E42; cursor: pointer;
+}
+.sidebar-link:hover { background: #F0EEE3; color: #15180F; }
+.sidebar-link.active { background: #E6EFE6; color: #003D21; font-weight: 600; }
+
+table { border-collapse: collapse; width: 100%; }
+th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+  color: #4A4E42; font-weight: 600; padding: 8px 12px; border-bottom: 1px solid #E2E0D4;
+}
+td { padding: 10px 12px; font-size: 13.5px; border-bottom: 1px solid #E2E0D4; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+
+input[type=text], input[type=email], input[type=number], input[type=date], select, textarea {
+  border: 1.5px solid #E2E0D4; border-radius: 8px; padding: 8px 11px; font-size: 14px;
+  background: #fff; width: 100%; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid #006838; outline-offset: 1px; border-color: #006838; }
+
+.leaf-divider { height: 2px; background: linear-gradient(90deg, #006838 0%, #7C8B72 40%, transparent 100%); width: 64px; }
+
+.scan-line { position: relative; overflow: hidden; }
+.scan-line::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #006838, transparent);
+  animation: scan 1.6s linear infinite;
+}
+@keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+.fade-in { animation: fadeIn .3s ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
