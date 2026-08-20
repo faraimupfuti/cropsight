@@ -80,7 +80,7 @@ cropsight-web/
 ```bash
 npm install
 npm run dev        # http://localhost:5173, demo mode unless .env has Supabase vars
-npm test           # 32 unit tests — logic, formatting, validation, a component test
+npm test           # 37 unit tests — logic, formatting, validation, a component test
 npm run build       # production build (tsc -b && vite build)
 ```
 
@@ -178,7 +178,7 @@ details of exactly what to check.
 npm test
 ```
 
-32 tests covering: outbreak-detection logic (thresholds, time windows,
+37 tests covering: outbreak-detection logic (thresholds, time windows,
 region/disease separation, edge cases), disease-knowledge-base integrity
 (every severity-capable disease has a complete KB entry), CSV/date
 formatting, client-side image validation, JPEG EXIF stripping (happy
@@ -186,7 +186,9 @@ path, non-JPEG passthrough, malformed-buffer safety, and correctly
 leaving non-EXIF APP1 data like XMP untouched), the live-mode review
 confirm/correct/uncertain logic (with a regression test that fails
 against the original buggy version and passes against the fix — verified
-both ways), and a component render test.
+both ways), farm/field creation (region-based coordinate assignment,
+different regions producing meaningfully different coordinates), and a
+component render test.
 
 `.github/workflows/ci.yml` runs on every push and PR: typecheck + build,
 Netlify Function typecheck, the full test suite, and — using a real
@@ -237,6 +239,8 @@ project. Both are natural next additions.
 
 ### Fixed since the initial live-mode build (verified, not just claimed)
 
+- **Farmers could not add farms or fields.** The original MVP spec explicitly called for this ("Farmers can create: Farm → Fields"), and it had never actually been built — `Fields.tsx` only ever listed pre-existing data. Fixed: farmers can now create a new farm (or add to an existing one) and add fields to it, with region-based approximate GPS coordinates auto-assigned so new fields show up sensibly on the GIS map without requiring the farmer to know their coordinates. Works in both demo mode (in-memory) and live mode (real Supabase inserts, respecting RLS). Covered by 4 new unit tests, plus a full browser test of the actual add-farm-and-field flow.
+- **Mobile navigation was broken for farmers — the one role the spec calls "mobile-first."** Checked directly with a mobile-viewport screenshot: the sidebar was hidden below the `md` breakpoint with no replacement, so a farmer on a phone had no way to reach My Fields or Observation History once they navigated away from the dashboard — only "Check My Crop" and "Log out" were reachable. Fixed with a proper hamburger menu in the mobile topbar exposing the same nav links as desktop; verified with a real tap-through test (open menu → tap "My Fields" → confirm it navigates and the menu closes).
 - **Confirming a review used to silently drop the diagnosis.** `submitReviewLive` only recorded a final disease/severity when an agronomist *corrected* a prediction — clicking "Confirm" left both fields `null` in the database. Fixed to carry over the AI's own prediction on confirm, with a regression test (`src/lib/api/liveData.test.ts`) that fails against the old logic and passes against the fix — verified both ways, not just written.
 - **Uploaded PNG/WebP images were stored with the wrong content-type and `.jpg` extension.** `predict.ts` now detects the real format from the image's magic bytes and uses it consistently for the storage upload, the file extension, and the `images.mime_type` column.
 - **Severity was silently derived from model confidence**, conflating "how sure the model is" with "how bad the disease is." `predict.ts` now only uses that heuristic as an explicit fallback (tagged `severity_source: "confidence_heuristic"` in the response), prefers a real severity value from the workflow if one is present, and the farmer-facing result card shows a plain-language caveat whenever the heuristic was used.

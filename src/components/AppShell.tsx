@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
 import { Tag } from "./ui/Tag";
@@ -46,17 +46,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useStore((s) => s.user);
   const logout = useStore((s) => s.logout);
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!role || !user) return null;
   const nav = NAV[role];
 
   async function handleLogout() {
+    setMobileMenuOpen(false);
     await logout();
     navigate("/");
   }
 
   return (
     <div className="min-h-screen flex">
+      {/* Desktop sidebar */}
       <aside className="w-64 shrink-0 border-r hidden md:flex md:flex-col bg-white" style={{ borderColor: "#E2E0D4" }}>
         <div className="h-16 flex items-center px-5 border-b" style={{ borderColor: "#E2E0D4" }}>
           <Logo height={20} />
@@ -83,11 +86,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button className="btn-ghost text-xs mt-3" onClick={handleLogout}>Log out</button>
         </div>
       </aside>
+
       <main className="flex-1 min-w-0">
-        <div className="md:hidden h-14 border-b flex items-center justify-between px-4 bg-white" style={{ borderColor: "#E2E0D4" }}>
-          <Logo height={18} />
-          <button className="text-xs font-semibold" style={{ color: "#006838" }} onClick={handleLogout}>Log out</button>
+        {/* Mobile topbar */}
+        <div className="md:hidden border-b bg-white sticky top-0 z-30" style={{ borderColor: "#E2E0D4" }}>
+          <div className="h-14 flex items-center justify-between px-4">
+            <Logo height={18} />
+            <button
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+              className="w-9 h-9 flex items-center justify-center rounded-lg"
+              style={{ border: "1.5px solid #E2E0D4" }}
+              onClick={() => setMobileMenuOpen((v) => !v)}
+            >
+              {mobileMenuOpen ? (
+                <span style={{ fontSize: 18, lineHeight: 1 }}>✕</span>
+              ) : (
+                <span style={{ fontSize: 18, lineHeight: 1 }}>☰</span>
+              )}
+            </button>
+          </div>
+
+          {mobileMenuOpen && (
+            <div className="border-t px-3 py-3 fade-in" style={{ borderColor: "#E2E0D4" }}>
+              <div className="mb-2"><Tag variant="demo">DEMO MODE</Tag></div>
+              {nav.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === `/app/${role}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+              <div className="border-t mt-2 pt-3 text-xs" style={{ borderColor: "#E2E0D4", color: "#4A4E42" }}>
+                <div className="font-semibold" style={{ color: "#15180F" }}>{user.name}</div>
+                <div>{ROLE_LABEL[role]} · {user.org}</div>
+                <button className="btn-ghost text-xs mt-2" onClick={handleLogout}>Log out</button>
+              </div>
+            </div>
+          )}
         </div>
+
         <div className="p-5 md:p-8 max-w-6xl mx-auto fade-in">{children}</div>
       </main>
     </div>

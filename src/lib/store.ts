@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { generateSeedData } from "./mockData";
+import { generateSeedData, approxCoordsForRegion } from "./mockData";
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
 import * as authApi from "./api/auth";
 import * as liveData from "./api/liveData";
-import type { DemoUser, Observation, OutbreakThresholdConfig, Role, Severity } from "./types";
+import type { DemoUser, Farm, Field, Observation, OutbreakThresholdConfig, Role, Severity } from "./types";
 
 const DEMO_USERS: Record<Role, DemoUser> = {
   farmer: { name: "Tendai Moyo", email: "tendai.moyo@demo.cropsight.africa", org: "Mash. Central Growers Co-op" },
@@ -55,6 +55,8 @@ interface CropSightState {
     correction?: { diseaseId: string; severity: Severity; notes: string }
   ) => Promise<void>;
   updateThreshold: (patch: Partial<OutbreakThresholdConfig>) => Promise<void>;
+  addFarm: (name: string) => Promise<Farm>;
+  addField: (farmId: string, input: { name: string; variety: string; plantingDate: string; areaHa: number; region: string }) => Promise<Field>;
   pushToast: (message: string) => void;
   dismissToast: (id: number) => void;
 }
@@ -237,6 +239,44 @@ export const useStore = create<CropSightState>((set, get) => ({
       await liveData.updateThresholdLive(organizationId, { ...get().outbreakThreshold, ...patch });
     }
     set((s) => ({ outbreakThreshold: { ...s.outbreakThreshold, ...patch } }));
+  },
+
+  addFarm: async (name) => {
+    const { mode, organizationId } = get();
+    if (mode === "live" && organizationId) {
+      const farm = await liveData.createFarmLive(organizationId, name);
+      set((s) => ({ db: { ...s.db, farms: [...s.db.farms, farm] } }));
+      return farm;
+    }
+    const farm: Farm = { id: "FARM-" + Date.now(), name, farmerId: "F1", region: "" };
+    set((s) => ({ db: { ...s.db, farms: [...s.db.farms, farm] } }));
+    return farm;
+  },
+
+  addField: async (farmId, input) => {
+    const { mode } = get();
+    const [lat, lng] = approxCoordsForRegion(input.region);
+
+    if (mode === "live") {
+      const field = await liveData.createFieldLive(farmId, { ...input, lat, lng });
+      set((s) => ({ db: { ...s.db, fields: [...s.db.fields, field] } }));
+      return field;
+    }
+
+    const field: Field = {
+      id: "FIELD-" + Date.now(),
+      name: input.name,
+      farmId,
+      region: input.region,
+      crop: "Maize",
+      variety: input.variety,
+      plantingDate: input.plantingDate,
+      areaHa: input.areaHa,
+      lat,
+      lng,
+    };
+    set((s) => ({ db: { ...s.db, fields: [...s.db.fields, field] } }));
+    return field;
   },
 
   pushToast: (message) => {

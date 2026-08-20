@@ -221,3 +221,66 @@ export async function updateThresholdLive(organizationId: string, patch: Partial
     .is("crop_disease_id", null);
   if (error) throw error;
 }
+
+export async function createFarmLive(organizationId: string, name: string): Promise<Farm> {
+  const sb = requireSupabase();
+  const { data: userData } = await sb.auth.getUser();
+  if (!userData.user) throw new Error("Not signed in");
+
+  const { data, error } = await sb
+    .from("farms")
+    .insert({ organization_id: organizationId, owner_id: userData.user.id, name })
+    .select()
+    .single();
+  if (error) throw error;
+
+  return { id: data.id, name: data.name, farmerId: data.owner_id, region: "" };
+}
+
+export interface NewFieldInput {
+  name: string;
+  variety: string;
+  plantingDate: string;
+  areaHa: number;
+  region: string;
+  lat: number;
+  lng: number;
+}
+
+export async function createFieldLive(farmId: string, input: NewFieldInput): Promise<Field> {
+  const sb = requireSupabase();
+
+  const { data: cropRow, error: cropErr } = await sb.from("crops").select("id").eq("name", "Maize").maybeSingle();
+  if (cropErr) throw cropErr;
+  if (!cropRow) throw new Error("Maize crop is not configured in this database — run supabase/migrations/0003_seed_reference_data.sql");
+
+  const { data, error } = await sb
+    .from("fields")
+    .insert({
+      farm_id: farmId,
+      crop_id: cropRow.id,
+      name: input.name,
+      variety: input.variety || null,
+      planting_date: input.plantingDate || null,
+      area_hectares: input.areaHa || null,
+      latitude: input.lat,
+      longitude: input.lng,
+      region: input.region,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    name: data.name,
+    farmId: data.farm_id,
+    region: data.region ?? "",
+    crop: "Maize",
+    variety: data.variety ?? "",
+    plantingDate: data.planting_date ?? "",
+    areaHa: data.area_hectares ?? 0,
+    lat: data.latitude ?? 0,
+    lng: data.longitude ?? 0,
+  };
+}

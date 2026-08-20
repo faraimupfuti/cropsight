@@ -24,6 +24,15 @@ export default function FarmerDashboard() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-8">
+        {fields.length === 0 && (
+          <div className="card p-6 text-sm md:col-span-3" style={{ color: "#4A4E42" }}>
+            No fields yet.{" "}
+            <button className="underline font-semibold" style={{ color: "#006838" }} onClick={() => navigate("/app/farmer/fields")}>
+              Add your first field
+            </button>{" "}
+            to get started.
+          </div>
+        )}
         {fields.slice(0, 3).map((f) => {
           const obs = obsForField(db, f.id);
           const latest = obs[obs.length - 1];

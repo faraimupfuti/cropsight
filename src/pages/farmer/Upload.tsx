@@ -129,7 +129,17 @@ export default function FarmerUpload() {
       <h1 className="text-xl font-semibold mb-1">Check My Crop</h1>
       <p className="text-sm mb-6" style={{ color: "#4A4E42" }}>Take or upload a clear photo of the affected leaf.</p>
 
-      {stage === "idle" && (
+      {stage === "idle" && fields.length === 0 && (
+        <div className="card p-6 text-sm" style={{ color: "#4A4E42" }}>
+          You don't have any fields yet.{" "}
+          <button className="underline font-semibold" style={{ color: "#006838" }} onClick={() => navigate("/app/farmer/fields")}>
+            Add a field
+          </button>{" "}
+          before checking a crop.
+        </div>
+      )}
+
+      {stage === "idle" && fields.length > 0 && (
         <div className="card p-6">
           <label className="block text-xs font-semibold mb-1.5" style={{ color: "#4A4E42" }}>Field</label>
           <select className="mb-4" value={fieldId} onChange={(e) => setFieldId(e.target.value)}>

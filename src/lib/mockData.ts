@@ -21,7 +21,7 @@ const LAST_NAMES = ["Moyo", "Ncube", "Sibanda", "Chikafu", "Mutasa", "Dube", "Ch
 
 export const REGIONS = ["Mashonaland Central", "Mashonaland West", "Manicaland", "Midlands", "Masvingo", "Matabeleland North"];
 
-const REGION_COORDS: Record<string, [number, number]> = {
+export const REGION_COORDS: Record<string, [number, number]> = {
   "Mashonaland Central": [-16.9, 31.3],
   "Mashonaland West": [-17.5, 29.8],
   Manicaland: [-19.0, 32.7],
@@ -29,6 +29,12 @@ const REGION_COORDS: Record<string, [number, number]> = {
   Masvingo: [-20.3, 30.9],
   "Matabeleland North": [-18.5, 27.5],
 };
+
+export function approxCoordsForRegion(region: string): [number, number] {
+  const base = REGION_COORDS[region] ?? REGION_COORDS[REGIONS[0]];
+  const jitterAmt = 0.4;
+  return [base[0] + (Math.random() * 2 - 1) * jitterAmt, base[1] + (Math.random() * 2 - 1) * jitterAmt];
+}
 
 export interface SeedDB {
   farmers: Farmer[];
